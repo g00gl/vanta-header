@@ -2,217 +2,234 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Neural Network Header</title>
+  <title>Particle Network</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <style>
+    :root {
+      /* Dark grey background, very close to the original demo */
+      --bg-color: #141414;
+      --particle-color: #ffffff;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     html, body {
       margin: 0;
       padding: 0;
-      height: 100%;
-      background: #000;
-    }
-
-    #hero {
       width: 100%;
-      height: 320px;     /* header height – change if you want */
-      background: #000;
-      position: relative;
+      height: 100%;
+      background: var(--bg-color);
+      color: var(--particle-color);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont,
+                   "Segoe UI", sans-serif;
       overflow: hidden;
     }
 
-    #networkCanvas {
+    .page {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    canvas {
       position: absolute;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 100%;
       height: 100%;
       display: block;
+      background: var(--bg-color);
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      pointer-events: none; /* allow mouse events to pass through to canvas */
+    }
+
+    h1 {
+      margin: 0 0 0.5rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+      opacity: 0.85;
+    }
+
+    .subtitle {
+      margin: 0 0 1.5rem;
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
+
+    .link-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.45rem 1.1rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      text-decoration: none;
+      color: var(--particle-color);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(4px);
+      pointer-events: auto; /* clickable even though parent is pointer-events:none */
+      transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.15s ease;
+    }
+
+    .link-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.45);
+      transform: translateY(-1px);
     }
   </style>
 </head>
 <body>
-  <div id="hero">
-    <canvas id="networkCanvas"></canvas>
+  <div class="page">
+    <canvas id="particleCanvas"></canvas>
+
+    <div class="content">
+      <h1>Particle Network</h1>
+      <p class="subtitle">HTML canvas-based rendering of a network of particles in motion</p>
+      <a class="link-btn"
+         href="https://github.com/chrislaskey/particle-network"
+         target="_blank" rel="noopener noreferrer">
+        View on GitHub
+      </a>
+    </div>
   </div>
 
   <script>
-    const canvas = document.getElementById('networkCanvas');
+    // ===== Canvas & sizing =====
+    const canvas = document.getElementById('particleCanvas');
     const ctx = canvas.getContext('2d');
 
-    let width, height;
+    let width, height, area;
     const particles = [];
-    const edges = [];
 
-    // ===== Tunable parameters for "feel" =====
-    const NUM_PARTICLES_BASE = 80;   // base number of nodes for 800px width
-    const NEIGHBOR_COUNT     = 3;    // how many fixed connections each node has
-    const JITTER_STRENGTH    = 0.015;// random jitter per frame
-    const SPRING_STRENGTH    = 0.003;// how strongly nodes return to their "home"
-    const FRICTION           = 0.93; // 0.9 = more damping, 1.0 = no damping
-    const MAX_SPEED          = 0.35; // absolute cap on speed (lower = calmer)
+    // Density ~ area / DENSITY_DIVISOR  (similar to demo’s behavior)
+    const DENSITY_DIVISOR = 9000;
+    const MAX_PARTICLES = 120;
+    const MIN_PARTICLES = 40;
 
-    const MOUSE_INFLUENCE    = 110;  // radius of invisible "field"
-    const REPULSE_STRENGTH   = 0.35; // how strongly the mouse pushes
+    const MAX_VELOCITY = 0.55;   // overall motion speed
+    const LINK_DISTANCE = 140;   // max distance to draw a line
+    const MOUSE_RADIUS  = 130;   // influence radius around mouse
+    const MOUSE_FORCE   = 0.08;  // how much particles are nudged by mouse
 
-    const mouse = { x: 0, y: 0, active: false };
+    const mouse = {
+      x: 0,
+      y: 0,
+      active: false
+    };
 
     function resizeCanvas() {
       const rect = canvas.getBoundingClientRect();
-      width = canvas.width = rect.width;
-      height = canvas.height = rect.height;
+      width  = rect.width;
+      height = rect.height;
+      canvas.width  = width;
+      canvas.height = height;
+      area = width * height;
+
+      seedParticles();
     }
 
-    function createBrainParticle() {
-      // Seed points in a "brain"–like double-lobe ellipse
-      const centerX = width / 2;
-      const centerY = height / 2;
+    function seedParticles() {
+      particles.length = 0;
 
-      const lobeShift = width * 0.09;           // distance between left/right lobes
-      const lobe = Math.random() < 0.5 ? -1 : 1;
+      let targetCount = Math.round(area / DENSITY_DIVISOR);
+      if (targetCount < MIN_PARTICLES) targetCount = MIN_PARTICLES;
+      if (targetCount > MAX_PARTICLES) targetCount = MAX_PARTICLES;
 
+      for (let i = 0; i < targetCount; i++) {
+        particles.push(createParticle());
+      }
+    }
+
+    function createParticle() {
       const angle = Math.random() * Math.PI * 2;
-      const r = Math.sqrt(Math.random());       // denser toward center
-
-      const a = width * 0.28;                   // horizontal radius
-      const b = height * 0.32;                  // vertical radius
-
-      const x = centerX + lobe * lobeShift + Math.cos(angle) * a * r;
-      const y = centerY + Math.sin(angle) * b * r;
+      const speed = (Math.random() * 0.5 + 0.5) * MAX_VELOCITY;
 
       return {
-        x, y,
-        homeX: x,
-        homeY: y,
-        vx: 0,
-        vy: 0,
-        radius: 1.5 + Math.random() * 3.5 // different sizes
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        radius: 1.2 + Math.random() * 2.8
       };
     }
 
-    function initNetwork() {
-      particles.length = 0;
-      edges.length = 0;
-
-      const numParticles = Math.floor(NUM_PARTICLES_BASE * (width / 800));
-      for (let i = 0; i < numParticles; i++) {
-        particles.push(createBrainParticle());
-      }
-
-      // Build fixed connections (synapses) to nearest neighbours
-      const edgeSet = new Set();
-
-      for (let i = 0; i < particles.length; i++) {
-        const p1 = particles[i];
-        const distances = [];
-
-        for (let j = 0; j < particles.length; j++) {
-          if (i === j) continue;
-          const p2 = particles[j];
-          const dx = p1.x - p2.x;
-          const dy = p1.y - p2.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          distances.push({ j, dist });
-        }
-
-        distances.sort((a, b) => a.dist - b.dist);
-
-        for (let k = 0; k < NEIGHBOR_COUNT && k < distances.length; k++) {
-          const j = distances[k].j;
-          const min = Math.min(i, j);
-          const max = Math.max(i, j);
-          const key = min + "-" + max;
-          if (!edgeSet.has(key)) {
-            edgeSet.add(key);
-            edges.push({
-              i: min,
-              j: max,
-              rest: distances[k].dist  // remember original length
-            });
-          }
-        }
-      }
-    }
-
+    // ===== Update & draw loop =====
     function updateParticles() {
       for (const p of particles) {
-        // Small random jitter (slow, organic motion)
-        p.vx += (Math.random() - 0.5) * JITTER_STRENGTH;
-        p.vy += (Math.random() - 0.5) * JITTER_STRENGTH;
-
-        // Spring back towards home position
-        const hx = p.homeX - p.x;
-        const hy = p.homeY - p.y;
-        p.vx += hx * SPRING_STRENGTH;
-        p.vy += hy * SPRING_STRENGTH;
-
-        // Mouse "force field" – push nodes away
+        // Gentle mouse repulsion
         if (mouse.active) {
           const dx = p.x - mouse.x;
           const dy = p.y - mouse.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < MOUSE_INFLUENCE && dist > 0.1) {
-            const force = (MOUSE_INFLUENCE - dist) / MOUSE_INFLUENCE;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+          if (dist < MOUSE_RADIUS) {
+            const force = (MOUSE_RADIUS - dist) / MOUSE_RADIUS;
             const ux = dx / dist;
             const uy = dy / dist;
-            p.vx += ux * REPULSE_STRENGTH * force;
-            p.vy += uy * REPULSE_STRENGTH * force;
+            p.vx += ux * MOUSE_FORCE * force;
+            p.vy += uy * MOUSE_FORCE * force;
           }
-        }
-
-        // Friction and speed cap
-        p.vx *= FRICTION;
-        p.vy *= FRICTION;
-
-        const speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
-        if (speed > MAX_SPEED) {
-          const s = MAX_SPEED / speed;
-          p.vx *= s;
-          p.vy *= s;
         }
 
         p.x += p.vx;
         p.y += p.vy;
 
-        // Soft boundary – keep them inside the canvas
-        if (p.x < 0) { p.x = 0; p.vx *= -0.5; }
-        if (p.x > width) { p.x = width; p.vx *= -0.5; }
-        if (p.y < 0) { p.y = 0; p.vy *= -0.5; }
-        if (p.y > height) { p.y = height; p.vy *= -0.5; }
+        // Slight wrapping rather than hard bounce for a softer effect
+        if (p.x < -10) p.x = width + 10;
+        else if (p.x > width + 10) p.x = -10;
+
+        if (p.y < -10) p.y = height + 10;
+        else if (p.y > height + 10) p.y = -10;
       }
     }
 
-    function draw() {
+    function drawParticles() {
       ctx.clearRect(0, 0, width, height);
-      ctx.lineCap = "round";
 
-      // Draw connections (synapses)
-      for (const edge of edges) {
-        const p1 = particles[edge.i];
-        const p2 = particles[edge.j];
+      // Draw lines first
+      for (let i = 0; i < particles.length; i++) {
+        const p1 = particles[i];
+        for (let j = i + 1; j < particles.length; j++) {
+          const p2 = particles[j];
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
 
-        const dx = p1.x - p2.x;
-        const dy = p1.y - p2.y;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 0.0001;
+          if (dist < LINK_DISTANCE) {
+            // Fade with distance
+            const t = 1 - dist / LINK_DISTANCE; // 0..1
+            const alpha = 0.08 + t * 0.35;      // a bit stronger up close
+            ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
+            ctx.lineWidth = 0.6 + t * 1.4;
 
-        // How much the connection is stretched vs its rest length
-        const stretch = dist / edge.rest;
-        const t = Math.max(0, Math.min(1, 1.4 - stretch)); // 1 near rest, smaller when fully stretched
-
-        const alpha = 0.18 + 0.45 * t;  // opacity
-        const lineWidth = 0.35 + 2.1 * t; // line thickness
-
-        ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
-        ctx.lineWidth = lineWidth;
-
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
       }
 
-      // Draw neurons (dots)
-      ctx.fillStyle = "#ffffff";
+      // Draw particles
+      ctx.fillStyle = '#ffffff';
       for (const p of particles) {
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
@@ -222,11 +239,11 @@
 
     function loop() {
       updateParticles();
-      draw();
+      drawParticles();
       requestAnimationFrame(loop);
     }
 
-    // Mouse events
+    // ===== Mouse handling =====
     canvas.addEventListener('mousemove', (e) => {
       const rect = canvas.getBoundingClientRect();
       mouse.x = e.clientX - rect.left;
@@ -238,15 +255,9 @@
       mouse.active = false;
     });
 
-    // Resize handling
-    window.addEventListener('resize', () => {
-      resizeCanvas();
-      initNetwork();
-    });
-
-    // Init
+    // ===== Init =====
+    window.addEventListener('resize', resizeCanvas);
     resizeCanvas();
-    initNetwork();
     loop();
   </script>
 </body>
