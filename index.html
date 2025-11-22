@@ -7,7 +7,7 @@
 
   <style>
     :root {
-      /* Dark grey background, very close to the original demo */
+      /* Dark background similar to the reference site */
       --bg-color: #141414;
       --particle-color: #ffffff;
     }
@@ -53,7 +53,7 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      pointer-events: none; /* allow mouse events to pass through to canvas */
+      pointer-events: none; /* lets mouse events reach the canvas */
     }
 
     h1 {
@@ -69,31 +69,7 @@
       margin: 0 0 1.5rem;
       font-size: 0.85rem;
       opacity: 0.7;
-    }
-
-    .link-btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.45rem 1.1rem;
-      border-radius: 999px;
-      font-size: 0.8rem;
-      text-decoration: none;
-      color: var(--particle-color);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      background: rgba(0, 0, 0, 0.2);
-      backdrop-filter: blur(4px);
-      pointer-events: auto; /* clickable even though parent is pointer-events:none */
-      transition:
-        background 0.2s ease,
-        border-color 0.2s ease,
-        transform 0.15s ease;
-    }
-
-    .link-btn:hover {
-      background: rgba(255, 255, 255, 0.08);
-      border-color: rgba(255, 255, 255, 0.45);
-      transform: translateY(-1px);
+      max-width: 480px;
     }
   </style>
 </head>
@@ -102,13 +78,12 @@
     <canvas id="particleCanvas"></canvas>
 
     <div class="content">
-      <h1>Particle Network</h1>
-      <p class="subtitle">HTML canvas-based rendering of a network of particles in motion</p>
-      <a class="link-btn"
-         href="https://github.com/chrislaskey/particle-network"
-         target="_blank" rel="noopener noreferrer">
-        View on GitHub
-      </a>
+      <!-- CHANGE THESE TWO LINES TO WHATEVER YOU WANT -->
+      <h1>Your Title Here</h1>
+      <p class="subtitle">
+        Your subtitle or tagline goes here. For example:
+        “Neural interfaces, VR, and cognitive signal processing.”
+      </p>
     </div>
   </div>
 
@@ -120,7 +95,7 @@
     let width, height, area;
     const particles = [];
 
-    // Density ~ area / DENSITY_DIVISOR  (similar to demo’s behavior)
+    // Density ~ area / DENSITY_DIVISOR
     const DENSITY_DIVISOR = 9000;
     const MAX_PARTICLES = 120;
     const MIN_PARTICLES = 40;
@@ -192,7 +167,7 @@
         p.x += p.vx;
         p.y += p.vy;
 
-        // Slight wrapping rather than hard bounce for a softer effect
+        // Wrap around edges for a continuous field
         if (p.x < -10) p.x = width + 10;
         else if (p.x > width + 10) p.x = -10;
 
@@ -204,7 +179,7 @@
     function drawParticles() {
       ctx.clearRect(0, 0, width, height);
 
-      // Draw lines first
+      // Draw lines
       for (let i = 0; i < particles.length; i++) {
         const p1 = particles[i];
         for (let j = i + 1; j < particles.length; j++) {
@@ -214,9 +189,8 @@
           const dist = Math.sqrt(dx * dx + dy * dy);
 
           if (dist < LINK_DISTANCE) {
-            // Fade with distance
             const t = 1 - dist / LINK_DISTANCE; // 0..1
-            const alpha = 0.08 + t * 0.35;      // a bit stronger up close
+            const alpha = 0.08 + t * 0.35;
             ctx.strokeStyle = `rgba(255,255,255,${alpha})`;
             ctx.lineWidth = 0.6 + t * 1.4;
 
