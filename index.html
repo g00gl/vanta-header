@@ -7,7 +7,7 @@
 
   <style>
     :root {
-      --bg-color: #141414;      /* base background */
+      --bg-color: #000000;      /* true black base */
       --particle-color: #ffffff;
     }
 
@@ -102,8 +102,6 @@
     const MOUSE_RADIUS  = 130;      // mouse influence radius
     const MOUSE_FORCE   = 0.08;     // strength of mouse repulsion
 
-    const BOUNCE_DAMPING = 0.45;    // < 1.0 => slower after bounce
-
     const mouse = {
       x: 0,
       y: 0,
@@ -146,32 +144,32 @@
       };
     }
 
-    // ===== Background clear =====
-    function clearBackground() {
+    // ===== Background & vignette =====
+    function drawBackground() {
+      // Solid black base – center remains pure black
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = "#141414";
+      ctx.fillStyle = "#000000";
       ctx.fillRect(0, 0, width, height);
     }
 
-    // ===== Edge vignette overlay (darker edges, center untouched) =====
-    function drawEdgeVignette() {
-      ctx.save();
-
+    function drawVignette() {
       const cx = width / 2;
       const cy = height / 2;
-      const radius = Math.max(width, height) / 1.1; // big oval
+      const radius = Math.max(width, height);
 
+      ctx.save();
       ctx.translate(cx, cy);
 
-      // Make it oval: taller than wide if needed
+      // Elliptical shape to match viewport
       const scaleY = height / width;
       ctx.scale(1, scaleY);
 
       const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
-      // Transparent in the center, dark towards edges
-      gradient.addColorStop(0.0, "rgba(0, 0, 0, 0.0)");
-      gradient.addColorStop(0.55, "rgba(0, 0, 0, 0.0)");
-      gradient.addColorStop(1.0, "rgba(0, 0, 0, 0.9)");
+      // Center fully transparent -> no change there
+      gradient.addColorStop(0.0, "rgba(0,0,0,0)");
+      gradient.addColorStop(0.65, "rgba(0,0,0,0)");
+      // Edges: nearly black overlay
+      gradient.addColorStop(1.0, "rgba(0,0,0,0.95)");
 
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -201,29 +199,29 @@
         p.x += p.vx;
         p.y += p.vy;
 
-        // Bounce off edges with damping so bounces are softer
+        // Bounce off edges
         if (p.x - p.radius < 0) {
           p.x = p.radius;
-          p.vx = -p.vx * BOUNCE_DAMPING;
+          p.vx *= -1;
         } else if (p.x + p.radius > width) {
           p.x = width - p.radius;
-          p.vx = -p.vx * BOUNCE_DAMPING;
+          p.vx *= -1;
         }
 
         if (p.y - p.radius < 0) {
           p.y = p.radius;
-          p.vy = -p.vy * BOUNCE_DAMPING;
+          p.vy *= -1;
         } else if (p.y + p.radius > height) {
           p.y = height - p.radius;
-          p.vy = -p.vy * BOUNCE_DAMPING;
+          p.vy *= -1;
         }
       }
     }
 
     function drawParticles() {
-      clearBackground();
+      drawBackground();
 
-      // Draw lines
+      // Lines
       for (let i = 0; i < particles.length; i++) {
         const p1 = particles[i];
         for (let j = i + 1; j < particles.length; j++) {
@@ -246,7 +244,7 @@
         }
       }
 
-      // Draw particles
+      // Particles
       ctx.fillStyle = '#ffffff';
       for (const p of particles) {
         ctx.beginPath();
@@ -254,8 +252,8 @@
         ctx.fill();
       }
 
-      // Darken edges on top of everything
-      drawEdgeVignette();
+      // Darken edges only – center stays untouched
+      drawVignette();
     }
 
     function loop() {
