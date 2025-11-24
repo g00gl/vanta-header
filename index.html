@@ -193,9 +193,11 @@
         0, 0, 0,
         0, 0, radius
       );
-      gradient.addColorStop(0.0, "rgba(0, 0, 0, 0.0)");  // clear center
-      gradient.addColorStop(0.6, "rgba(0, 0, 0, 0.40)");  // start dimming
-      gradient.addColorStop(0.85, "rgba(0, 0, 0, 0.98)"); // dark edges
+
+      gradient.addColorStop(0.0, "rgba(0, 0, 0, 0.0)");   // clear center
+      gradient.addColorStop(0.45, "rgba(0, 0, 0, 0.6)");  // already quite dark halfway
+      gradient.addColorStop(1.0, "rgba(0, 0, 0, 1.0)");   // fully black at edges
+
 
       ctx.fillStyle = gradient;
       ctx.beginPath();
