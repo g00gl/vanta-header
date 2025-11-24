@@ -97,13 +97,13 @@
     const MAX_PARTICLES = 120;
     const MIN_PARTICLES = 40;
 
-    const MAX_VELOCITY = 0.40;      // overall movement speed (slightly slower)
+    const MAX_VELOCITY = 0.55;      // overall movement speed (back to earlier feel)
     const LINK_DISTANCE = 140;      // max distance to draw line
     const MOUSE_RADIUS  = 130;      // mouse influence radius
     const MOUSE_FORCE   = 0.08;     // strength of mouse repulsion
 
-    const FRICTION       = 0.98;    // slows everything slightly each frame
-    const BOUNCE_DAMPING = 0.7;    // how much speed is kept after a bounce (<1 = softer)
+    const FRICTION       = 0.99;    // very light damping (keeps motion alive)
+    const BOUNCE_DAMPING = 0.65;    // softer bounce: keep ~65% of speed
 
     const mouse = {
       x: 0,
@@ -151,18 +151,20 @@
     function drawVignette() {
       const cx = width / 2;
       const cy = height / 2;
-      const radius = Math.max(width, height) * 0.75;
+      const radius = Math.max(width, height); // big radius so gradient spans whole screen
 
       ctx.save();
       ctx.translate(cx, cy);
 
-      // Elliptical gradient (slightly squashed vertically if needed)
+      // Elliptical gradient
       const scaleY = height / width;
       ctx.scale(1, scaleY);
 
       const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
-      gradient.addColorStop(0, 'rgba(0,0,0,0)');      // fully transparent center
-      gradient.addColorStop(1, 'rgba(0,0,0,0.85)');   // dark edges
+      // Keep center completely clear; only darken outer ring
+      gradient.addColorStop(0.0, 'rgba(0,0,0,0)');
+      gradient.addColorStop(0.65, 'rgba(0,0,0,0)');    // inner ~65% unaffected
+      gradient.addColorStop(1.0, 'rgba(0,0,0,0.95)');  // strong dark edges
 
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -189,14 +191,14 @@
           }
         }
 
-        // Apply friction to soften motion & bounces
+        // Light friction to keep things smooth
         p.vx *= FRICTION;
         p.vy *= FRICTION;
 
         p.x += p.vx;
         p.y += p.vy;
 
-        // Bounce off edges with damping (soft, slow return)
+        // Bounce off edges with damping (softer, slower return)
         if (p.x - p.radius < 0) {
           p.x = p.radius;
           p.vx = Math.abs(p.vx) * BOUNCE_DAMPING;
