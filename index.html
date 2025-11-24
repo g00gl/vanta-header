@@ -7,7 +7,7 @@
 
   <style>
     :root {
-      --bg-color: #141414;      /* base background */
+      --bg-color: #020617;      /* deep blue base */
       --particle-color: #ffffff;
     }
 
@@ -144,15 +144,15 @@
       };
     }
 
-    // ===== Background (oval gradient under everything) =====
+    // ===== Background (blue oval gradient under everything) =====
     function drawBackground() {
       ctx.clearRect(0, 0, width, height);
 
-      // Base fill
-      ctx.fillStyle = "#000000";
+      // Base fill – deep blue
+      ctx.fillStyle = "#020617";
       ctx.fillRect(0, 0, width, height);
 
-      // Oval gradient: lighter center, darker edges
+      // Oval gradient: center tinted with #465984, edges darker blue
       const cx = width / 2;
       const cy = height / 2;
       const radius = Math.max(width, height) / 2;
@@ -165,8 +165,8 @@
       ctx.scale(1, scaleY);
 
       const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
-      gradient.addColorStop(0, "#202020"); // center
-      gradient.addColorStop(1, "#000000"); // edges
+      gradient.addColorStop(0,  "#465984"); // bluish center
+      gradient.addColorStop(1,  "#020617"); // dark blue edges
 
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -176,7 +176,7 @@
       ctx.restore();
     }
 
-    // ===== NEW: Vignette layer on top (dims edges more) =====
+    // ===== Vignette layer on top (dims edges more) =====
     function drawVignetteOverlay() {
       const cx = width / 2;
       const cy = height / 2;
@@ -188,16 +188,14 @@
       const scaleY = height / width;
       ctx.scale(1, scaleY);
 
-      // Transparent in the center, darker toward edges
+      // Transparent center, dark edges
       const gradient = ctx.createRadialGradient(
         0, 0, 0,
         0, 0, radius
       );
-
-      gradient.addColorStop(0.0, "rgba(0, 0, 0, 0.0)");   // clear center
-      gradient.addColorStop(0.45, "rgba(0, 0, 0, 0.6)");  // already quite dark halfway
-      gradient.addColorStop(1.0, "rgba(0, 0, 0, 1.0)");   // fully black at edges
-
+      gradient.addColorStop(0.0, "rgba(0, 0, 0, 0.0)");  // clear center
+      gradient.addColorStop(0.45, "rgba(0, 0, 0, 0.6)"); // start dimming
+      gradient.addColorStop(1.0, "rgba(0, 0, 0, 1.0)");  // fully black edges
 
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -280,7 +278,7 @@
         ctx.fill();
       }
 
-      // Finally, draw vignette overlay on top of everything
+      // Darken edges on top
       drawVignetteOverlay();
     }
 
