@@ -7,7 +7,7 @@
 
   <style>
     :root {
-      --bg-color: #020617;      /* deep blue base */
+      --bg-color: #28344f;      /* main dark grayish blue */
       --particle-color: #ffffff;
     }
 
@@ -148,11 +148,11 @@
     function drawBackground() {
       ctx.clearRect(0, 0, width, height);
 
-      // Base fill – deep blue
-      ctx.fillStyle = "#020617";
+      // Base fill – main dark grayish blue
+      ctx.fillStyle = "#28344f";
       ctx.fillRect(0, 0, width, height);
 
-      // Oval gradient: center tinted with #465984, edges darker blue
+      // Oval gradient: slightly lighter center, same color at edges
       const cx = width / 2;
       const cy = height / 2;
       const radius = Math.max(width, height) / 2;
@@ -165,8 +165,8 @@
       ctx.scale(1, scaleY);
 
       const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
-      gradient.addColorStop(0,  "#465984"); // bluish center
-      gradient.addColorStop(1,  "#020617"); // dark blue edges
+      gradient.addColorStop(0,  "#3b4e76"); // lighter bluish center
+      gradient.addColorStop(1,  "#28344f"); // main color at edges
 
       ctx.fillStyle = gradient;
       ctx.beginPath();
