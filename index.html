@@ -97,13 +97,12 @@
     const MAX_PARTICLES = 120;
     const MIN_PARTICLES = 40;
 
-    const MAX_VELOCITY = 0.55;      // overall movement speed (back to earlier feel)
+    const MAX_VELOCITY = 0.55;      // base speed of particles
     const LINK_DISTANCE = 140;      // max distance to draw line
     const MOUSE_RADIUS  = 130;      // mouse influence radius
     const MOUSE_FORCE   = 0.08;     // strength of mouse repulsion
 
-    const FRICTION       = 0.99;    // very light damping (keeps motion alive)
-    const BOUNCE_DAMPING = 0.65;    // softer bounce: keep ~65% of speed
+    const BOUNCE_DAMPING = 0.45;    // < 1.0 => slower after bounce
 
     const mouse = {
       x: 0,
@@ -147,24 +146,32 @@
       };
     }
 
-    // ===== Vignette overlay (dark edges on top of particles) =====
-    function drawVignette() {
+    // ===== Background clear =====
+    function clearBackground() {
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = "#141414";
+      ctx.fillRect(0, 0, width, height);
+    }
+
+    // ===== Edge vignette overlay (darker edges, center untouched) =====
+    function drawEdgeVignette() {
+      ctx.save();
+
       const cx = width / 2;
       const cy = height / 2;
-      const radius = Math.max(width, height); // big radius so gradient spans whole screen
+      const radius = Math.max(width, height) / 1.1; // big oval
 
-      ctx.save();
       ctx.translate(cx, cy);
 
-      // Elliptical gradient
+      // Make it oval: taller than wide if needed
       const scaleY = height / width;
       ctx.scale(1, scaleY);
 
       const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
-      // Keep center completely clear; only darken outer ring
-      gradient.addColorStop(0.0, 'rgba(0,0,0,0)');
-      gradient.addColorStop(0.65, 'rgba(0,0,0,0)');    // inner ~65% unaffected
-      gradient.addColorStop(1.0, 'rgba(0,0,0,0.95)');  // strong dark edges
+      // Transparent in the center, dark towards edges
+      gradient.addColorStop(0.0, "rgba(0, 0, 0, 0.0)");
+      gradient.addColorStop(0.55, "rgba(0, 0, 0, 0.0)");
+      gradient.addColorStop(1.0, "rgba(0, 0, 0, 0.9)");
 
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -191,37 +198,30 @@
           }
         }
 
-        // Light friction to keep things smooth
-        p.vx *= FRICTION;
-        p.vy *= FRICTION;
-
         p.x += p.vx;
         p.y += p.vy;
 
-        // Bounce off edges with damping (softer, slower return)
+        // Bounce off edges with damping so bounces are softer
         if (p.x - p.radius < 0) {
           p.x = p.radius;
-          p.vx = Math.abs(p.vx) * BOUNCE_DAMPING;
+          p.vx = -p.vx * BOUNCE_DAMPING;
         } else if (p.x + p.radius > width) {
           p.x = width - p.radius;
-          p.vx = -Math.abs(p.vx) * BOUNCE_DAMPING;
+          p.vx = -p.vx * BOUNCE_DAMPING;
         }
 
         if (p.y - p.radius < 0) {
           p.y = p.radius;
-          p.vy = Math.abs(p.vy) * BOUNCE_DAMPING;
+          p.vy = -p.vy * BOUNCE_DAMPING;
         } else if (p.y + p.radius > height) {
           p.y = height - p.radius;
-          p.vy = -Math.abs(p.vy) * BOUNCE_DAMPING;
+          p.vy = -p.vy * BOUNCE_DAMPING;
         }
       }
     }
 
-    function drawFrame() {
-      // Base fill
-      ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = '#141414';
-      ctx.fillRect(0, 0, width, height);
+    function drawParticles() {
+      clearBackground();
 
       // Draw lines
       for (let i = 0; i < particles.length; i++) {
@@ -254,13 +254,13 @@
         ctx.fill();
       }
 
-      // Dark-edge overlay on top of everything
-      drawVignette();
+      // Darken edges on top of everything
+      drawEdgeVignette();
     }
 
     function loop() {
       updateParticles();
-      drawFrame();
+      drawParticles();
       requestAnimationFrame(loop);
     }
 
