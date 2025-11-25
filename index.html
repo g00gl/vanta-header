@@ -51,23 +51,69 @@
       align-items: center;
       justify-content: center;
       text-align: center;
-      pointer-events: none; /* mouse events go through to canvas */
+      pointer-events: none; /* mouse/touch events go through to canvas */
     }
 
-    h1 {
-      margin: 0 0 0.5rem;
+    /* Desktop / default typography */
+    .content h1 {
+      margin: 0 0 16px;
       font-weight: 500;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      font-size: clamp(1.1rem, 1.6vw, 1.4rem);
+      font-size: 38px;
       opacity: 0.9;
     }
 
     .subtitle {
       margin: 0;
-      font-size: 0.85rem;
+      font-size: 13px;        /* base subtitle size for desktop */
       opacity: 0.75;
       max-width: 480px;
+    }
+
+    /* Bigger + italic */
+    .subtitle .big {
+      font-size: 18px;
+      font-weight: 500;
+      font-style: italic;
+    }
+
+    /* Medium + italic */
+    .subtitle .medium {
+      font-size: 15px;
+      font-weight: 500;
+      font-style: italic;
+    }
+
+    /* Smaller + italic */
+    .subtitle .small {
+      font-size: 12px;
+      font-style: italic;
+    }
+
+    /* ===== MOBILE ADAPTATION ===== */
+    @media (max-width: 600px) {
+      .content h1 {
+        font-size: 26px;          /* smaller title on phones */
+        margin-bottom: 12px;
+      }
+
+      .subtitle {
+        font-size: 11px;          /* smaller base subtitle */
+        max-width: 90%;           /* little more width on phones */
+      }
+
+      .subtitle .big {
+        font-size: 14px;
+      }
+
+      .subtitle .medium {
+        font-size: 12px;
+      }
+
+      .subtitle .small {
+        font-size: 11px;
+      }
     }
   </style>
 </head>
@@ -75,48 +121,14 @@
   <div class="page">
     <canvas id="particleCanvas"></canvas>
 
-    <style>
-      .content h1 {
-        font-size: 38px;
-        margin: 0 0 16px;
-      }
-    
-      .subtitle {
-        margin: 0;
-        font-size: 13px;        /* base subtitle size */
-      }
-    
-      /* Bigger + italic */
-      .subtitle .big {
-        font-size: 18px;        /* clearly bigger than base */
-        font-weight: 500;
-        font-style: italic;
-      }
-    
-      /* Medium + italic */
-      .subtitle .medium {
-        font-size: 15px;
-        font-weight: 500;
-        font-style: italic;
-      }
-    
-      /* Smaller + italic (if you ever use it) */
-      .subtitle .small {
-        font-size: 12px;
-        font-style: italic;
-      }
-    </style>
-
-    
-        
     <div class="content">
       <h1>ALI MOUSAVI</h1>
-    
+
       <p class="subtitle">
         <span class="small">
           Researcher at the intersection of
         </span><br>
-    
+
         <span class="medium">
           Artificial&nbsp;Intelligence,
           Biomedical&nbsp;Signal&nbsp;Processing,<br>
@@ -125,9 +137,7 @@
         </span>
       </p>
     </div>
-
   </div>
-
 
   <script>
     // ===== Canvas & sizing =====
@@ -137,9 +147,10 @@
     let width, height, area;
     const particles = [];
 
-    const DENSITY_DIVISOR = 9000;   // controls how many particles per area unit
-    const MAX_PARTICLES = 120;
-    const MIN_PARTICLES = 40;
+    // These are now 'let' so we can change them for mobile/desktop
+    let DENSITY_DIVISOR = 9000;   // controls how many particles per area unit
+    let MAX_PARTICLES = 120;
+    let MIN_PARTICLES = 40;
 
     const MAX_VELOCITY = 0.55;      // base speed of particles
     const LINK_DISTANCE = 140;      // max distance to draw line
@@ -159,6 +170,24 @@
       canvas.width  = width;
       canvas.height = height;
       area = width * height;
+
+      // ===== ADJUST PARTICLE SETTINGS FOR DIFFERENT SCREEN SIZES =====
+      if (width <= 600) {
+        // Phones: significantly fewer particles
+        DENSITY_DIVISOR = 18000;
+        MAX_PARTICLES   = 60;
+        MIN_PARTICLES   = 18;
+      } else if (width <= 900) {
+        // Tablets / small laptops
+        DENSITY_DIVISOR = 12000;
+        MAX_PARTICLES   = 90;
+        MIN_PARTICLES   = 24;
+      } else {
+        // Desktops / large screens
+        DENSITY_DIVISOR = 9000;
+        MAX_PARTICLES   = 120;
+        MIN_PARTICLES   = 40;
+      }
 
       seedParticles();
     }
