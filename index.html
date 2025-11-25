@@ -42,11 +42,9 @@
       z-index: 0; /* bottom layer */
     }
 
-    /* === Circular, blended portrait photo in top-right === */
+    /* === Circular, blended portraits === */
     .portrait {
       position: absolute;
-      top: 2rem;
-      right: 2rem;
       width: 220px;                 /* base size on desktop */
       height: 220px;
       object-fit: cover;
@@ -61,6 +59,16 @@
 
       pointer-events: none;         /* do not block mouse/touch */
       z-index: 1;                   /* above particles, below text */
+    }
+
+    .portrait-left {
+      top: 2rem;
+      left: 2rem;
+    }
+
+    .portrait-right {
+      top: 2rem;
+      right: 2rem;
     }
 
     .content {
@@ -138,11 +146,19 @@
       }
 
       .portrait {
+        width: 150px;             /* smaller portraits on phones */
+        height: 150px;
+        opacity: 0.30;            /* slightly dimmer */
+      }
+
+      .portrait-left {
+        top: 1rem;
+        left: 1rem;
+      }
+
+      .portrait-right {
         top: 1rem;
         right: 1rem;
-        width: 150px;             /* smaller portrait on phones */
-        height: 150px;
-        opacity: 0.30;            /* slightly dimmer on small screens */
       }
     }
   </style>
@@ -151,8 +167,9 @@
   <div class="page">
     <canvas id="particleCanvas"></canvas>
 
-    <!-- Your circular, blended portrait in the top-right -->
-    <img src="Ali.jpg" alt="Ali Mousavi" class="portrait">
+    <!-- Left and right circular portraits -->
+    <img src="Ali1.jpg" alt="Ali 1" class="portrait portrait-left">
+    <img src="Ali2.jpg" alt="Ali 2" class="portrait portrait-right">
 
     <div class="content">
       <h1>ALI MOUSAVI</h1>
