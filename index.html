@@ -82,36 +82,42 @@
     
       .subtitle {
         font-size: 13px;
+        margin: 0;
+      }
+    
+      /* IMPORTANT: these rules MUST be inside <style> … </style> */
+      .subtitle span.big {
+        font-size: 22px;      /* clearly bigger than base */
+        font-weight: 600;
+        font-style: italic;
+      }
+    
+      .subtitle span.medium {
+        font-size: 16px;      /* a bit bigger than base */
+        font-style: italic;
+      }
+    
+      .subtitle span.small {
+        font-size: 11px;      /* smaller than base */
+        font-style: italic;
       }
     </style>
-
-    .subtitle span.big {
-      font-size: 18px;      /* ~10% bigger than base */
-      font-weight: 500;     /* a bit bolder */
-      font-style: italic;
-    }
     
-    .subtitle span.medium {
-      font-size: 16px;      /* base size */
-      font-style: italic;
-    }
-    
-    .subtitle span.small {
-      font-size: 14px;      /* ~10–15% smaller */
-      font-style: italic;
-    }
-  </style>
-    
+        
     <div class="content">
-      <!-- CHANGE THESE LINES TO YOUR OWN TEXT -->
       <h1>Ali Mousavi</h1>
+    
       <p class="subtitle">
-        <span class="medium"> Researcher at the intersection of </span><br> 
-        <span class="big"> Artificial&nbsp;Intelligence,<br> 
-        Biomedical&nbsp;Signal&nbsp;Processing, Brain&#8209;Computer&nbsp;Interfaces,<br> 
-        Virtual&nbsp;Reality, and&nbsp;Learning </span>
+        <span class="medium">Researcher at the intersection of</span><br>
+        <span class="big">
+          Artificial&nbsp;Intelligence,
+          Biomedical&nbsp;Signal&nbsp;Processing,
+          Brain&#8209;Computer&nbsp;Interfaces,
+          Virtual&nbsp;Reality, and&nbsp;Learning
+        </span>
       </p>
     </div>
+
   </div>
 
 
