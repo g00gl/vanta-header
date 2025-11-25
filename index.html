@@ -7,7 +7,7 @@
 
   <style>
     :root {
-      --bg-color: #28344f;      /* main dark grayish blue */
+      --bg-color: #000000;      /* base = almost black */
       --particle-color: #ffffff;
     }
 
@@ -144,15 +144,14 @@
       };
     }
 
-    // ===== Background (blue oval gradient under everything) =====
+    // ===== Background (black with subtle #28344f glow in center) =====
     function drawBackground() {
       ctx.clearRect(0, 0, width, height);
 
-      // Base fill – main dark grayish blue
-      ctx.fillStyle = "#28344f";
+      // Base fill – pure black
+      ctx.fillStyle = "#000000";
       ctx.fillRect(0, 0, width, height);
 
-      // Oval gradient: slightly lighter center, same color at edges
       const cx = width / 2;
       const cy = height / 2;
       const radius = Math.max(width, height) / 2;
@@ -160,13 +159,14 @@
       ctx.save();
       ctx.translate(cx, cy);
 
-      // Scale the circle vertically to create an ellipse
+      // Scale circle vertically → ellipse
       const scaleY = height / width;
       ctx.scale(1, scaleY);
 
       const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
-      gradient.addColorStop(0,  "#3b4e76"); // lighter bluish center
-      gradient.addColorStop(1,  "#28344f"); // main color at edges
+      gradient.addColorStop(0.0, "#28344f");  // your blue in the very center
+      gradient.addColorStop(0.5, "#111827");  // quickly drops to dark blue
+      gradient.addColorStop(1.0, "#000000");  // edges back to black
 
       ctx.fillStyle = gradient;
       ctx.beginPath();
@@ -188,13 +188,12 @@
       const scaleY = height / width;
       ctx.scale(1, scaleY);
 
-      // Transparent center, dark edges
       const gradient = ctx.createRadialGradient(
         0, 0, 0,
         0, 0, radius
       );
       gradient.addColorStop(0.0, "rgba(0, 0, 0, 0.0)");  // clear center
-      gradient.addColorStop(0.45, "rgba(0, 0, 0, 0.6)"); // start dimming
+      gradient.addColorStop(0.45, "rgba(0, 0, 0, 0.6)"); // darkening
       gradient.addColorStop(1.0, "rgba(0, 0, 0, 1.0)");  // fully black edges
 
       ctx.fillStyle = gradient;
