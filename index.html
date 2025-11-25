@@ -77,22 +77,43 @@
 
     <style>
       .content h1 {
-        font-size: 42px;
+        font-size: 38px;
       }
     
       .subtitle {
-        font-size: 18px;
+        font-size: 13px;
       }
     </style>
+
+    .subtitle span.big {
+      font-size: 18px;      /* ~10% bigger than base */
+      font-weight: 500;     /* a bit bolder */
+      font-style: italic;
+    }
+    
+    .subtitle span.medium {
+      font-size: 16px;      /* base size */
+      font-style: italic;
+    }
+    
+    .subtitle span.small {
+      font-size: 14px;      /* ~10–15% smaller */
+      font-style: italic;
+    }
+
 
     <div class="content">
       <!-- CHANGE THESE LINES TO YOUR OWN TEXT -->
       <h1>Ali Mousavi</h1>
       <p class="subtitle">
-        Researcher at the intersection of  <br> Artificial&nbsp;Intelligence,<br> Biomedical&nbsp;Signal&nbsp;Processing, Brain&#8209;Computer&nbsp;Interfaces,<br> Virtual&nbsp;Reality, and&nbsp;Learning
+        <span class="medium"> Researcher at the intersection of </span><br> 
+        <span class="big"> Artificial&nbsp;Intelligence,<br> 
+        Biomedical&nbsp;Signal&nbsp;Processing, Brain&#8209;Computer&nbsp;Interfaces,<br> 
+        Virtual&nbsp;Reality, and&nbsp;Learning </span>
       </p>
     </div>
   </div>
+
 
   <script>
     // ===== Canvas & sizing =====
